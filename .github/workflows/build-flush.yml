@@ -1,0 +1,45 @@
+name: Build Flush APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Extract Flush
+        run: |
+          mkdir flush-build
+          unzip -q Flush_Android_Studio_Project_v2.zip -d flush-build
+
+      - name: Build Flush APK
+        working-directory: flush-build
+        run: gradle assembleDebug --stacktrace
+
+      - name: Prepare APK
+        run: |
+          cp flush-build/app/build/outputs/apk/debug/app-debug.apk Flush.apk
+
+      - name: Upload Flush APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flush-APK
+          path: Flush.apk
